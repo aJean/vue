@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*!
  * Vue.js v2.5.22
  * (c) 2014-2019 Evan You
@@ -8102,8 +8103,10 @@ if (inBrowser) {
       );
     }
   }, 0);
+=======
+if (process.env.NODE_ENV === 'production') {
+  module.exports = require('./vue.runtime.common.prod.js')
+} else {
+  module.exports = require('./vue.runtime.common.dev.js')
+>>>>>>> build: ship pre-minified versions of CommonJS build and server renderer
 }
-
-/*  */
-
-module.exports = Vue;

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*!
  * Vue.js v2.5.22
  * (c) 2014-2019 Evan You
@@ -11077,8 +11078,10 @@ function getOuterHTML (el) {
     container.appendChild(el.cloneNode(true));
     return container.innerHTML
   }
+=======
+if (process.env.NODE_ENV === 'production') {
+  module.exports = require('./vue.common.prod.js')
+} else {
+  module.exports = require('./vue.common.dev.js')
+>>>>>>> build: ship pre-minified versions of CommonJS build and server renderer
 }
-
-Vue.compile = compileToFunctions;
-
-module.exports = Vue;
