@@ -4,6 +4,10 @@ const zlib = require('zlib')
 const rollup = require('rollup')
 const terser = require('terser')
 
+/**
+ * 构建，把内部的配置通过 genConfig 转化成 rollup 的配置，然后使用 rollup node api 执行
+ */
+
 if (!fs.existsSync('dist')) {
   fs.mkdirSync('dist')
 }
@@ -40,6 +44,7 @@ function build (builds) {
   next()
 }
 
+// 调用 rollup api 编译构建代码
 function buildEntry (config) {
   const output = config.output
   const { file, banner } = output
@@ -64,6 +69,7 @@ function buildEntry (config) {
     })
 }
 
+// 输出到本地 dist
 function write (dest, code, zip) {
   return new Promise((resolve, reject) => {
     function report (extra) {
