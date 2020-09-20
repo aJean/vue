@@ -168,6 +168,7 @@ export function mountComponent (
 
   let updateComponent
   /* istanbul ignore if */
+  // 性能检测模式
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
     updateComponent = () => {
       const name = vm._name
@@ -186,6 +187,7 @@ export function mountComponent (
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
+    // 关键渲染挂载
     updateComponent = () => {
       vm._update(vm._render(), hydrating)
     }

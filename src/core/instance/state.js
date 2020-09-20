@@ -109,6 +109,7 @@ function initProps (vm: Component, propsOptions: Object) {
   toggleObserving(true)
 }
 
+// 先代理属性，再对 data 做响应式处理
 function initData (vm: Component) {
   let data = vm.$options.data
   data = vm._data = typeof data === 'function'
@@ -127,6 +128,7 @@ function initData (vm: Component) {
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
+  // methods、props、data 里面的 key 不能冲突，因为都会挂载到 vm._data 上
   while (i--) {
     const key = keys[i]
     if (process.env.NODE_ENV !== 'production') {
@@ -144,6 +146,7 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
+      // 代理属性 vm.key -> vm._data.key
       proxy(vm, `_data`, key)
     }
   }

@@ -33,6 +33,7 @@ Vue.prototype.$mount = function (
   // resolve template/el and convert to render function
   if (!options.render) {
     let template = options.template
+    // 对 template 的判断，因为 runtime-compiler 版本主要多出的功能就是编译模板，所以首先要找到 template
     if (template) {
       if (typeof template === 'string') {
         if (template.charAt(0) === '#') {
@@ -53,6 +54,7 @@ Vue.prototype.$mount = function (
         }
         return this
       }
+    // 如果没传，就直接使用 el 对象的 dom 结构
     } else if (el) {
       template = getOuterHTML(el)
     }

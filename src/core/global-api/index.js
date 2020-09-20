@@ -18,6 +18,10 @@ import {
   defineReactive
 } from '../util/index'
 
+/**
+ * 定义 Vue 上的全局属性或方法
+ */
+
 export function initGlobalAPI (Vue: GlobalAPI) {
   // config
   const configDef = {}
@@ -51,6 +55,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
     return obj
   }
 
+  // 创建空对象
   Vue.options = Object.create(null)
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)
