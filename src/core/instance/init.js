@@ -56,6 +56,7 @@ export function initMixin (Vue: Class<Component>) {
     vm._self = vm
     initLifecycle(vm)
     initEvents(vm)
+    // 添加 vm.$createElement 和 vm._c 用来创建 vnode
     initRender(vm)
     callHook(vm, 'beforeCreate')
     initInjections(vm) // resolve injections before data/props
