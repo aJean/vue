@@ -21,6 +21,7 @@ import {
 export let activeInstance: any = null
 export let isUpdatingChildComponent: boolean = false
 
+// 设置当前激活的 vm 对象
 export function setActiveInstance(vm: Component) {
   const prevActiveInstance = activeInstance
   activeInstance = vm
@@ -29,6 +30,7 @@ export function setActiveInstance(vm: Component) {
   }
 }
 
+// 保存 $children 和 $parent
 export function initLifecycle (vm: Component) {
   const options = vm.$options
 
@@ -61,14 +63,15 @@ export function lifecycleMixin (Vue: Class<Component>) {
     const prevEl = vm.$el
     const prevVnode = vm._vnode
     const restoreActiveInstance = setActiveInstance(vm)
+    // 保存这一次生成的 vnode
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
     if (!prevVnode) {
-      // initial render
+      // 没有 prevNode 说明是初始化
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
-      // updates
+      // 这里就是 diff 更新
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
     restoreActiveInstance()

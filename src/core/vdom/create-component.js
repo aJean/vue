@@ -109,6 +109,7 @@ export function createComponent (
     return
   }
 
+  // 就是 Vue
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor
@@ -220,6 +221,7 @@ export function createComponentInstanceForVnode (
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
+  // instance _init 时会判断 options._isComponent
   return new vnode.componentOptions.Ctor(options)
 }
 
