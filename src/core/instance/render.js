@@ -78,8 +78,7 @@ export function renderMixin (Vue: Class<Component>) {
       )
     }
 
-    // set parent vnode. this allows render functions to have access
-    // to the data on the placeholder node.
+    // 占位 vnode，也就是针对组件节点在 vdom/createComponent 创建的 vnode，带有 componentOptions 属性
     vm.$vnode = _parentVnode
     // render self
     let vnode
@@ -122,7 +121,7 @@ export function renderMixin (Vue: Class<Component>) {
       }
       vnode = createEmptyVNode()
     }
-    // set parent
+    // 将占位 vnode 赋给真实的 vnode，可以在 this._vnode.parent 里看的
     vnode.parent = _parentVnode
     return vnode
   }

@@ -39,7 +39,7 @@ export function initMixin (Vue: Class<Component>) {
       // internal component options needs special treatment.
       initInternalComponent(vm, options)
     } else {
-      // 合并 options，后续全部使用 $options
+      // 全局的 Vue.options 与本次传入的 options 的合并
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
@@ -83,7 +83,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
   const parentVnode = options._parentVnode
-  opts.parent = options.parent
+  opts.parent = options.parent // 父 instance
   opts._parentVnode = parentVnode
 
   const vnodeComponentOptions = parentVnode.componentOptions
@@ -114,7 +114,7 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
         extend(Ctor.extendOptions, modifiedOptions)
       }
       options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions)
-      if (options.name) {
+      if (options.name) { // 局部注册组件的构造器
         options.components[options.name] = Ctor
       }
     }

@@ -45,8 +45,8 @@ const componentVNodeHooks = {
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
       const child = vnode.componentInstance = createComponentInstanceForVnode(
-        vnode,
-        activeInstance
+        vnode, // 当前组件的 vnode
+        activeInstance // 父级的 vue instance
       )
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
@@ -112,7 +112,7 @@ export function createComponent (
   // 就是 Vue
   const baseCtor = context.$options._base
 
-  // plain options object: turn it into a constructor
+  // 组件第一次都是 plain 对象，将它转化成 function
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor)
   }
@@ -126,14 +126,13 @@ export function createComponent (
     return
   }
 
-  // async component
+  // 异步组件处理，是 function 但没有 cid，表示这个组件没有被 extend 处理过
   let asyncFactory
   if (isUndef(Ctor.cid)) {
     asyncFactory = Ctor
     Ctor = resolveAsyncComponent(asyncFactory, baseCtor)
     if (Ctor === undefined) {
-      // return a placeholder node for async component, which is rendered
-      // as a comment node but preserves all the raw information for the node.
+      // 返回一个占位的注释节点，中断底下的逻辑
       // the information will be used for async server-rendering and hydration.
       return createAsyncPlaceholder(
         asyncFactory,
@@ -225,6 +224,7 @@ export function createComponentInstanceForVnode (
   return new vnode.componentOptions.Ctor(options)
 }
 
+// 把组件的 hook 挂到 this.data.hook 上面
 function installComponentHooks (data: VNodeData) {
   const hooks = data.hook || (data.hook = {})
   for (let i = 0; i < hooksToMerge.length; i++) {

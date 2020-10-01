@@ -48,6 +48,7 @@ export function resolveAsyncComponent (
     return factory.errorComp
   }
 
+  // 加载成功后会把 exports 赋给 factory.resolved
   if (isDef(factory.resolved)) {
     return factory.resolved
   }
@@ -70,6 +71,7 @@ export function resolveAsyncComponent (
 
     ;(owner: any).$on('hook:destroyed', () => remove(owners, owner))
 
+    // 强制重新渲染，触发 this._watcher.update()
     const forceRender = (renderCompleted: boolean) => {
       for (let i = 0, l = owners.length; i < l; i++) {
         (owners[i]: any).$forceUpdate()
@@ -111,9 +113,11 @@ export function resolveAsyncComponent (
       }
     })
 
+    // 这是我们异步组件拿到的参数，和 promise 处理一个意思
     const res = factory(resolve, reject)
 
     if (isObject(res)) {
+      // 如果 factory 返回的是 promise，那就直接 then 进去
       if (isPromise(res)) {
         // () => Promise
         if (isUndef(factory.resolved)) {

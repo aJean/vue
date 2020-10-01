@@ -122,6 +122,7 @@ export function createPatchFunction (backend) {
 
   let creatingElmInVPre = 0
 
+  // 创建真实 dom element
   function createElm (
     vnode,
     insertedVnodeQueue,
@@ -180,6 +181,7 @@ export function createPatchFunction (backend) {
           }
           insert(parentElm, vnode.elm, refElm)
         }
+        // 创建子节点的 element，也会遇到 component 继续递归，这时候再次执行 createElm 传入的 parentElm 就是 vnode.elm
         createChildren(vnode, children, insertedVnodeQueue)
         if (appendAsTree) {
           if (isDef(data)) {
@@ -207,6 +209,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 非常重要，处理组件 vnode 的实例化和 insert
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
     if (isDef(i)) {
@@ -219,8 +222,9 @@ export function createPatchFunction (backend) {
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
       if (isDef(vnode.componentInstance)) {
+        // 设置 vnode.elm
         initComponent(vnode, insertedVnodeQueue)
-        // initComponent 会设置 vnode.elm
+        // 插入父级 dom 元素
         insert(parentElm, vnode.elm, refElm)
         if (isTrue(isReactivated)) {
           reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
@@ -235,6 +239,7 @@ export function createPatchFunction (backend) {
       insertedVnodeQueue.push.apply(insertedVnodeQueue, vnode.data.pendingInsert)
       vnode.data.pendingInsert = null
     }
+    // 这时候子组件已经完成了 patch，所以 vm.$el 上就是子组件的 dom
     vnode.elm = vnode.componentInstance.$el
     if (isPatchable(vnode)) {
       invokeCreateHooks(vnode, insertedVnodeQueue)
@@ -708,7 +713,7 @@ export function createPatchFunction (backend) {
     let isInitialPatch = false
     const insertedVnodeQueue = []
 
-    // 没有传 el 的情况
+    // 没有传 el 的情况，第一次子组件的渲染都是走这里，除了根组件
     if (isUndef(oldVnode)) {
       // empty mount (likely as component), create new root element
       isInitialPatch = true
@@ -716,9 +721,10 @@ export function createPatchFunction (backend) {
     } else {
       const isRealElement = isDef(oldVnode.nodeType)
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
-        // patch existing root node
+        // 新旧 vdom diff 的流程
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
       } else {
+        // 初始化 dom 流程
         if (isRealElement) {
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
