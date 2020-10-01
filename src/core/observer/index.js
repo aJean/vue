@@ -231,8 +231,9 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
     return val
   }
 
+  // 加这个的目的是新属性第一次用 set 定义，后面就可以直接通过 member expression 访问了
   defineReactive(ob.value, key, val)
-  // 触发渲染 watcher
+  // 手动触发渲染 watcher，并不是用属性的 dep，但无所谓 render watcher 都是同一个
   ob.dep.notify()
   return val
 }
