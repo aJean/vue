@@ -92,6 +92,7 @@ function flushSchedulerQueue () {
     }
     id = watcher.id
     has[id] = null
+    // 触发更新
     watcher.run()
     // in dev build, check and stop circular updates.
     if (process.env.NODE_ENV !== 'production' && has[id] != null) {
@@ -114,10 +115,12 @@ function flushSchedulerQueue () {
   const activatedQueue = activatedChildren.slice()
   const updatedQueue = queue.slice()
 
+  // 重置状态
   resetSchedulerState()
 
   // call component updated and activated hooks
   callActivatedHooks(activatedQueue)
+  // 如果是 render watcher 执行 updated 生命周期
   callUpdatedHooks(updatedQueue)
 
   // devtool hook
@@ -163,20 +166,23 @@ function callActivatedHooks (queue) {
  */
 export function queueWatcher (watcher: Watcher) {
   const id = watcher.id
-  if (has[id] == null) {
+  if (has[id] == null) { // 避免放入重复的 watcher
     has[id] = true
+    // 如果还没有开始渲染，就直接放入队列
     if (!flushing) {
       queue.push(watcher)
     } else {
       // if already flushing, splice the watcher based on its id
       // if already past its id, it will be run next immediately.
+      // 如果已经开始渲染了，就要把 watcher 插入到合适的位置去
       let i = queue.length - 1
       while (i > index && queue[i].id > watcher.id) {
         i--
       }
       queue.splice(i + 1, 0, watcher)
     }
-    // queue the flush
+    // queue the flush，只需要有一个 tick 去执行 flushSchedulerQueue 就可以了
+    // 剩下的 watcher 我们就往 queue 里放，自然会被处理
     if (!waiting) {
       waiting = true
 

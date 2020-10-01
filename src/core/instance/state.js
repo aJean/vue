@@ -150,7 +150,7 @@ function initData (vm: Component) {
       proxy(vm, `_data`, key)
     }
   }
-  // observe data
+  // 响应式劫持 data 属性的 get 和 set
   observe(data, true /* asRootData */)
 }
 
@@ -241,6 +241,7 @@ export function defineComputed (
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+// 读取 computed 属性时候执行
 function createComputedGetter (key) {
   return function computedGetter () {
     const watcher = this._computedWatchers && this._computedWatchers[key]
@@ -248,6 +249,8 @@ function createComputedGetter (key) {
       if (watcher.dirty) {
         watcher.evaluate()
       }
+      // 触发依赖收集，这个时候 Dep.target 应该是一个渲染 watcher
+      // 并且在执行 evaluate - getter 后，也收集了一批 deps
       if (Dep.target) {
         watcher.depend()
       }

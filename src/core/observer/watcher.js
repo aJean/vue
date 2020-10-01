@@ -58,6 +58,7 @@ export default class Watcher {
     if (options) {
       this.deep = !!options.deep
       this.user = !!options.user
+      // computed 属性
       this.lazy = !!options.lazy
       this.sync = !!options.sync
       this.before = options.before
@@ -99,10 +100,11 @@ export default class Watcher {
    * Evaluate the getter, and re-collect dependencies.
    */
   get () {
-    pushTarget(this)
+    pushTarget(this) // Dep.target = this
     let value
     const vm = this.vm
     try {
+      // 这里会触发对应属性的 get，把 wather 添加到属性的 dep.subs 中
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -116,7 +118,9 @@ export default class Watcher {
       if (this.deep) {
         traverse(value)
       }
+      // 恢复上一级的 Dep.target，因为 vnode 是个树结构
       popTarget()
+      // 移除一些 dep
       this.cleanupDeps()
     }
     return value
@@ -127,10 +131,13 @@ export default class Watcher {
    */
   addDep (dep: Dep) {
     const id = dep.id
+    // 避免本次收集过程中添加重复依赖
     if (!this.newDepIds.has(id)) {
+      // 把 dep 放到 watcher 中，有了这个才能执行 watcher.depend
       this.newDepIds.add(id)
       this.newDeps.push(dep)
       if (!this.depIds.has(id)) {
+        // 把 watcher 放到 dep 中
         dep.addSub(this)
       }
     }
@@ -141,12 +148,16 @@ export default class Watcher {
    */
   cleanupDeps () {
     let i = this.deps.length
+    // 怎么理解？因为可能有些流程判断比如 v-if = show，但这时候 show 变成 false 了，所以 if 下面数据再变化不应该触发渲染
+    // 这里主要的作用就是把 render watcher 从过期的属性 dep 中删除掉，避免一些不可见属性更新时触发不必要的渲染
     while (i--) {
       const dep = this.deps[i]
+      // 不是无脑删除，还要判断新的一轮依赖收集中有没有订阅，如果没有就删除旧的，体现了逻辑的严谨性
       if (!this.newDepIds.has(dep.id)) {
         dep.removeSub(this)
       }
     }
+    // 把这次新加的 dep 保存到 this.deps 里
     let tmp = this.depIds
     this.depIds = this.newDepIds
     this.newDepIds = tmp
@@ -165,9 +176,9 @@ export default class Watcher {
     /* istanbul ignore else */
     if (this.lazy) {
       this.dirty = true
-    } else if (this.sync) {
+    } else if (this.sync) { // 同步模式，一般不要使用
       this.run()
-    } else {
+    } else { // 通过 nextTick 异步触发更新
       queueWatcher(this)
     }
   }
@@ -178,6 +189,7 @@ export default class Watcher {
    */
   run () {
     if (this.active) {
+      // 对于渲染 watcher 来说，就是执行 updateComponent，进入 patch 流程
       const value = this.get()
       if (
         value !== this.value ||
@@ -190,6 +202,7 @@ export default class Watcher {
         // set new value
         const oldValue = this.value
         this.value = value
+        // 业务 watcher，get 就是求值，逻辑在 callback
         if (this.user) {
           try {
             this.cb.call(this.vm, value, oldValue)
@@ -204,16 +217,19 @@ export default class Watcher {
   }
 
   /**
-   * Evaluate the value of the watcher.
-   * This only gets called for lazy watchers.
+   * Evaluate the value of the watcher. This only gets called for lazy watchers.
+   * computed watcher 专用
    */
   evaluate () {
+    // 执行时先把 computed watcher 放入 Dep.target，然后触发 getter，就可以把 computed watcher 放到它依赖属性的 dep 中去
     this.value = this.get()
+    // 避免计算多次，因为 computed watcher 的 get 可能会由依赖属性的 set 触发，所以需要避免在模板里读属性时又触发一次计算
     this.dirty = false
   }
 
   /**
    * Depend on all deps collected by this watcher.
+   * computed watcher 掉用，把当前所属的渲染 watcher 放到所有 dep 中，建立网状依赖
    */
   depend () {
     let i = this.deps.length

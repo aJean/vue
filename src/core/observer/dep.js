@@ -11,7 +11,7 @@ let uid = 0
  * directives subscribing to it.
  */
 export default class Dep {
-  static target: ?Watcher;
+  static target: ?Watcher; // 当前正在处理的 watcher，同一时刻只有一个，用于依赖收集
   id: number;
   subs: Array<Watcher>;
 

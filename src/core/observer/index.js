@@ -43,6 +43,7 @@ export class Observer {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
+    // 定义一个私有属性，值就是本身，可以通过 value.__ob__ 获取 this
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
       if (hasProto) {
@@ -57,9 +58,7 @@ export class Observer {
   }
 
   /**
-   * Walk through all properties and convert them into
-   * getter/setters. This method should only be called when
-   * value type is Object.
+   * 遍历对象的所有属性，添加响应式处理
    */
   walk (obj: Object) {
     const keys = Object.keys(obj)
@@ -112,8 +111,10 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     return
   }
   let ob: Observer | void
+  // 已经处理过，直接返回之前的对象
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
+  // 判断是数组或对象并且可扩展
   } else if (
     shouldObserve &&
     !isServerRendering() &&
@@ -146,13 +147,14 @@ export function defineReactive (
     return
   }
 
-  // cater for pre-defined getter/setters
+  // cater for pre-defined getter/setters，默认就是直接取 obj 上的 key 值
   const getter = property && property.get
   const setter = property && property.set
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
 
+  // 针对 value 是对象或数组的 case，可以看到这是个深度递归，这也是 defineProperty 比 Proxy 性能差的原因之一
   let childOb = !shallow && observe(val)
   Object.defineProperty(obj, key, {
     enumerable: true,
@@ -162,6 +164,7 @@ export function defineReactive (
       if (Dep.target) {
         dep.depend()
         if (childOb) {
+          // 注意这里是用 ob.dep 去收集的，而不是属性的 dep，但是 render watcher 都是一样的
           childOb.dep.depend()
           if (Array.isArray(value)) {
             dependArray(value)
@@ -204,6 +207,8 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
   ) {
     warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`)
   }
+
+  // splice 已经被 hook 了，所以这里就可以触发变化
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.length = Math.max(target.length, key)
     target.splice(key, 1, val)
@@ -225,7 +230,9 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
     target[key] = val
     return val
   }
+
   defineReactive(ob.value, key, val)
+  // 触发渲染 watcher
   ob.dep.notify()
   return val
 }
