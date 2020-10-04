@@ -21,6 +21,7 @@ export function initExtend (Vue: GlobalAPI) {
     const Super = this
     const SuperId = Super.cid
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
+    // 在组件对象上保存组件类，避免统一类的组件多次创建 Sub
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
     }
@@ -30,6 +31,7 @@ export function initExtend (Vue: GlobalAPI) {
       validateComponentName(name)
     }
 
+    // 跟 Vue 区别不大，也是执行 _init
     const Sub = function VueComponent (options) {
       this._init(options)
     }

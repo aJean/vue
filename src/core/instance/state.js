@@ -55,7 +55,9 @@ export function initState (vm: Component) {
   } else {
     observe(vm._data = {}, true /* asRootData */)
   }
+  // cpmputed watcher
   if (opts.computed) initComputed(vm, opts.computed)
+  // user watcher
   if (opts.watch && opts.watch !== nativeWatch) {
     initWatch(vm, opts.watch)
   }
@@ -195,9 +197,7 @@ function initComputed (vm: Component, computed: Object) {
       )
     }
 
-    // component-defined computed properties are already defined on the
-    // component prototype. We only need to define computed properties defined
-    // at instantiation here.
+    // computed 定义的 key 不能与 props 或 data 冲突
     if (!(key in vm)) {
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
@@ -246,6 +246,7 @@ function createComputedGetter (key) {
   return function computedGetter () {
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
+      // 缓存计算结果，因为这里会执行依赖属性的 get，影响比较大
       if (watcher.dirty) {
         watcher.evaluate()
       }
@@ -345,6 +346,7 @@ export function stateMixin (Vue: Class<Component>) {
   Object.defineProperty(Vue.prototype, '$data', dataDef)
   Object.defineProperty(Vue.prototype, '$props', propsDef)
 
+  // 用来处理新增属性或数组属性
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
 

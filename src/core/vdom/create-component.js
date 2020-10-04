@@ -112,7 +112,7 @@ export function createComponent (
   // 就是 Vue
   const baseCtor = context.$options._base
 
-  // 组件第一次都是 plain 对象，将它转化成 function
+  // 如果是组件对象，将它转化为 function
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor)
   }

@@ -173,7 +173,7 @@ export default class Watcher {
    * Will be called when a dependency changes.
    */
   update () {
-    /* istanbul ignore else */
+    // 同样体现了延迟计算，依赖属性的变化会触发 render watcher update，然后执行到读取 computedGetter 时，才触发 computed evalute
     if (this.lazy) {
       this.dirty = true
     } else if (this.sync) { // 同步模式，一般不要使用

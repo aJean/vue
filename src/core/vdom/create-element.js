@@ -108,7 +108,7 @@ export function _createElement (
         config.parsePlatformTagName(tag), data, children,
         undefined, undefined, context
       )
-    // 判断 tag 是一个已经注册过的 component 构造器
+    // 判断 tag 是一个已经注册过的 component 构造器，获取组件描述对象
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
