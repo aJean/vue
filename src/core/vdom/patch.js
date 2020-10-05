@@ -222,7 +222,7 @@ export function createPatchFunction (backend) {
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
       if (isDef(vnode.componentInstance)) {
-        // 设置 vnode.elm，这个 vnode 是占位节点
+        // 设置 vnode.elm，这个 vnode 是占位节点，这也是个递归的过程，拿到最下面节点的 el，一直返回到最上层的组件
         initComponent(vnode, insertedVnodeQueue)
         // 插入到父级 dom 元素，如果是纯嵌套组件，不一定每次都会插入，因为 parentElm 会有空的情况
         insert(parentElm, vnode.elm, refElm)
@@ -778,8 +778,8 @@ export function createPatchFunction (backend) {
         )
 
         // update parent placeholder node element, recursively
-        // 更新占位 vnode，初始化或者 diff 都会执行，因为之前保存的 elm 是旧 vnode 的 elm
-        // 初始化的时候用于把最下层创建的 dom elm，一直设置到顶层的嵌套组件，然后那个组件是在 createComponent 里面挂载
+        // 更新占位 vnode，因为之前保存的 elm 是旧 vnode 的 elm
+        // 最下层创建的 dom elm，一直设置到顶层的嵌套组件，然后那个组件是在 createComponent 里面挂载
         if (isDef(vnode.parent)) {
           let ancestor = vnode.parent
           const patchable = isPatchable(vnode)
