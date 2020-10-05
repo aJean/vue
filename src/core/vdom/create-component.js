@@ -34,6 +34,9 @@ import {
 
 // inline hooks to be invoked on component VNodes during patch
 const componentVNodeHooks = {
+  /**
+   * 组件实例化，patch - createElm - createComponent 时执行
+   */
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
     if (
       vnode.componentInstance &&
@@ -45,13 +48,16 @@ const componentVNodeHooks = {
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
       const child = vnode.componentInstance = createComponentInstanceForVnode(
-        vnode, // 当前组件的 vnode
+        vnode, // 当前的占位 vnode
         activeInstance // 父级的 vue instance
       )
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
 
+  /**
+   * patch - patchVnode
+   */
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
     const child = vnode.componentInstance = oldVnode.componentInstance
@@ -63,7 +69,9 @@ const componentVNodeHooks = {
       options.children // new children
     )
   },
-
+  /**
+   * patch - insert
+   */
   insert (vnode: MountedComponentVNode) {
     const { context, componentInstance } = vnode
     if (!componentInstance._isMounted) {
@@ -182,7 +190,7 @@ export function createComponent (
     }
   }
 
-  // install component management hooks onto the placeholder node
+  // 安装组件 hooks，比如 init、prepatch
   installComponentHooks(data)
 
   // return a placeholder vnode
@@ -205,6 +213,7 @@ export function createComponent (
   return vnode
 }
 
+// vnode patch 时候实例化组件
 export function createComponentInstanceForVnode (
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
   parent: any, // activeInstance in lifecycle state

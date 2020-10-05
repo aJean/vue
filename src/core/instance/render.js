@@ -66,6 +66,9 @@ export function renderMixin (Vue: Class<Component>) {
     return nextTick(fn, this)
   }
 
+  /**
+   * 调用编译生成的 render 函数生成 vdom 
+   */
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
     const { render, _parentVnode } = vm.$options
@@ -121,7 +124,7 @@ export function renderMixin (Vue: Class<Component>) {
       }
       vnode = createEmptyVNode()
     }
-    // 将占位 vnode 赋给真实的 vnode，可以在 this._vnode.parent 里看的
+    // 将占位 vnode 组件 vnode，可以在 this._vnode.parent 里查看
     vnode.parent = _parentVnode
     return vnode
   }

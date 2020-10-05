@@ -15,6 +15,9 @@ const idToTemplate = cached(id => {
 })
 
 const mount = Vue.prototype.$mount
+/**
+ * 对原生 $mount 的重写，用于 rc 模式，主要目的是生成 render function
+ */
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean

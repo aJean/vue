@@ -222,9 +222,9 @@ export function createPatchFunction (backend) {
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
       if (isDef(vnode.componentInstance)) {
-        // 设置 vnode.elm
+        // 设置 vnode.elm，这个 vnode 是占位节点
         initComponent(vnode, insertedVnodeQueue)
-        // 插入父级 dom 元素
+        // 插入到父级 dom 元素，如果是纯嵌套组件，不一定每次都会插入，因为 parentElm 会有空的情况
         insert(parentElm, vnode.elm, refElm)
         if (isTrue(isReactivated)) {
           reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
@@ -234,6 +234,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 执行子组件的实例化结束
   function initComponent (vnode, insertedVnodeQueue) {
     if (isDef(vnode.data.pendingInsert)) {
       insertedVnodeQueue.push.apply(insertedVnodeQueue, vnode.data.pendingInsert)
@@ -287,6 +288,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 创建子节点，这时候已经有了父节点的 dom elm
   function createChildren (vnode, children, insertedVnodeQueue) {
     if (Array.isArray(children)) {
       if (process.env.NODE_ENV !== 'production') {
@@ -300,6 +302,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 寻找可挂载节点，就是不是组件的节点
   function isPatchable (vnode) {
     while (vnode.componentInstance) {
       vnode = vnode.componentInstance._vnode
@@ -504,6 +507,9 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * 比对同类型的 vnode
+   */
   function patchVnode (
     oldVnode,
     vnode,
@@ -547,6 +553,7 @@ export function createPatchFunction (backend) {
 
     let i
     const data = vnode.data
+    // 执行 prepatch 钩子
     if (isDef(data) && isDef(i = data.hook) && isDef(i = i.prepatch)) {
       i(oldVnode, vnode)
     }
@@ -705,6 +712,7 @@ export function createPatchFunction (backend) {
 
   // 执行 diff 生成 element
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
+    // 没传 vnode 说明是销毁
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
@@ -720,16 +728,16 @@ export function createPatchFunction (backend) {
       createElm(vnode, insertedVnodeQueue)
     } else {
       const isRealElement = isDef(oldVnode.nodeType)
+      // 判断不是 dom 节点，并且是相同的 vnode
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
-        // 新旧 vdom diff 的流程
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
       } else {
-        // 初始化 dom 流程
+        // 初始化 dom 流程，new Vue 入口都会传入 el，也会走到这里
         if (isRealElement) {
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
-          // 向真实 dom mount，判断是否 ssr
+          // 判断我们现有的 dom 结果是否 ssr
           if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
             oldVnode.removeAttribute(SSR_ATTR)
             hydrating = true
@@ -749,8 +757,8 @@ export function createPatchFunction (backend) {
               )
             }
           }
-          // either not server-rendered, or hydration failed.
-          // create an empty node and replace it
+          // either not server-rendered, or hydration failed. create an empty node and replace it
+          // 这里是为了流程一致，因为不管是初始化，还是 diff 节点类型不同，都是执行新建！！
           oldVnode = emptyNodeAt(oldVnode)
         }
 
@@ -758,7 +766,7 @@ export function createPatchFunction (backend) {
         const oldElm = oldVnode.elm
         const parentElm = nodeOps.parentNode(oldElm)
 
-        // create new node
+        // create new node，可以获得 vnode.elm
         createElm(
           vnode,
           insertedVnodeQueue,
@@ -770,6 +778,8 @@ export function createPatchFunction (backend) {
         )
 
         // update parent placeholder node element, recursively
+        // 更新占位 vnode，初始化或者 diff 都会执行，因为之前保存的 elm 是旧 vnode 的 elm
+        // 初始化的时候用于把最下层创建的 dom elm，一直设置到顶层的嵌套组件，然后那个组件是在 createComponent 里面挂载
         if (isDef(vnode.parent)) {
           let ancestor = vnode.parent
           const patchable = isPatchable(vnode)
@@ -795,11 +805,12 @@ export function createPatchFunction (backend) {
             } else {
               registerRef(ancestor)
             }
+            // 组件直接嵌套组件的情况，才会有 parent，这里的作用是把 elm 一直向上更新赋值
             ancestor = ancestor.parent
           }
         }
 
-        // destroy old node
+        // 删除旧的 vnode
         if (isDef(parentElm)) {
           removeVnodes([oldVnode], 0, 0)
         } else if (isDef(oldVnode.tag)) {

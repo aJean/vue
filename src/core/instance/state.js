@@ -307,6 +307,9 @@ function initWatch (vm: Component, watch: Object) {
   }
 }
 
+/**
+ * 创建 user watcher，支持 sync、immediate、deep 模式
+ */
 function createWatcher (
   vm: Component,
   expOrFn: string | Function,
@@ -362,6 +365,7 @@ export function stateMixin (Vue: Class<Component>) {
     options = options || {}
     options.user = true
     const watcher = new Watcher(vm, expOrFn, cb, options)
+    // 立即执行一次回调
     if (options.immediate) {
       try {
         cb.call(vm, watcher.value)

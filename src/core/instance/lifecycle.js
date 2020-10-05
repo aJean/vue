@@ -58,12 +58,13 @@ export function initLifecycle (vm: Component) {
 }
 
 export function lifecycleMixin (Vue: Class<Component>) {
+  // 渲染 watcher 更新界面
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
     const prevVnode = vm._vnode
     const restoreActiveInstance = setActiveInstance(vm)
-    // 保存这一次生成的 vnode
+    // 保存这一次生成的 vnode，因为 update 都是通过 instace 执行的，所以需要保存在 instance 上
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
@@ -127,7 +128,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     vm._isDestroyed = true
     // invoke destroy hooks on current rendered tree
     vm.__patch__(vm._vnode, null)
-    // fire destroyed hook
+    // 可以看到 destroyed 事件要在 child instance 卸载后才触发
     callHook(vm, 'destroyed')
     // turn off all instance listeners.
     vm.$off()
@@ -264,7 +265,7 @@ export function updateChildComponent (
   vm.$attrs = parentVnode.data.attrs || emptyObject
   vm.$listeners = listeners || emptyObject
 
-  // update props
+  // update props，把父组件变化的 props 赋值给子组件，根据响应式，这个会触发 setter，同时执行子组件 render watcher 的 update
   if (propsData && vm.$options.props) {
     toggleObserving(false)
     const props = vm._props

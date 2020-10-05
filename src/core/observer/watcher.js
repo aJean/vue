@@ -80,6 +80,7 @@ export default class Watcher {
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
+      // 生成一个 getter 函数，比如 () => this.name
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
         this.getter = noop
@@ -113,8 +114,7 @@ export default class Watcher {
         throw e
       }
     } finally {
-      // "touch" every property so they are all tracked as
-      // dependencies for deep watching
+      // 触发一个对象内部所有属性的访问，做深度的依赖收级，只供 user watcher 使用，因为 render 和 computer 都是模板访问
       if (this.deep) {
         traverse(value)
       }

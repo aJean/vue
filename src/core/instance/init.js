@@ -83,7 +83,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
   const parentVnode = options._parentVnode
-  opts.parent = options.parent // 父 instance
+  opts.parent = options.parent // 上一级的 vue instance
   opts._parentVnode = parentVnode
 
   const vnodeComponentOptions = parentVnode.componentOptions
