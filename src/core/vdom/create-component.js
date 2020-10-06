@@ -168,7 +168,7 @@ export function createComponent (
     transformModel(Ctor.options, data)
   }
 
-  // extract props，render function 里传入的 props
+  // 提取 props，render function 里传入的 props
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
   // functional component

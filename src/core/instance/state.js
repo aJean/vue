@@ -75,6 +75,9 @@ function initProps(vm: Component, propsOptions: Object) {
   const keys = (vm.$options._propKeys = []);
   const isRoot = !vm.$parent;
   // root instance props should be converted
+  // 不是最外层 new Vue 的 instance，不做 props 的向下递归处理，只处理最外层的 key 就好
+  // 因为 props 都是父组件传来的，即使 value 是对象，也已经被处理过了，直接 get 就可以触发依赖收集，把子组件的 watcher 添加进去
+  // 这也表明无论 props 是传值还是对象，只要父组件执行相关的更新，子组件都可以接收到变化
   if (!isRoot) {
     toggleObserving(false);
   }
@@ -107,9 +110,8 @@ function initProps(vm: Component, propsOptions: Object) {
     } else {
       defineReactive(props, key, value);
     }
-    // static props are already proxied on the component's prototype
-    // during Vue.extend(). We only need to proxy props defined at
-    // instantiation here.
+    // static props are already proxied on the component's prototype during Vue.extend(). 
+    // We only need to proxy props defined at instantiation here.
     if (!(key in vm)) {
       proxy(vm, `_props`, key);
     }

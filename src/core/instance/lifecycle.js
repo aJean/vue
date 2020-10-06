@@ -270,6 +270,7 @@ export function updateChildComponent (
     toggleObserving(false)
     const props = vm._props
     const propKeys = vm.$options._propKeys || []
+    // initProps 时候做的 key 缓存，只会处理定义过的 props！！
     for (let i = 0; i < propKeys.length; i++) {
       const key = propKeys[i]
       const propOptions: any = vm.$options.props // wtf flow?

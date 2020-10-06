@@ -86,6 +86,7 @@ export function initInternalComponent(
   options: InternalComponentOptions
 ) {
   // constructor.options 是在 extends 时合并过的，跟非组件流程一样会继承 Vue.options
+  // 这个就是 extend 时候的 Sub.options
   const opts = (vm.$options = Object.create(vm.constructor.options));
   // doing this because it's faster than dynamic enumeration.
   const parentVnode = options._parentVnode;

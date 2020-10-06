@@ -46,9 +46,7 @@ export function initExtend (Vue: GlobalAPI) {
     )
     Sub['super'] = Super
 
-    // For props and computed properties, we define the proxy getters on
-    // the Vue instances at extension time, on the extended prototype. This
-    // avoids Object.defineProperty calls for each instance created.
+    // 定义静态的 props 到 prototype，避免每次初始化时候都进行多次 define
     if (Sub.options.props) {
       initProps(Sub)
     }

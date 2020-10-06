@@ -48,6 +48,7 @@ export function validateProp (
     // since the default value is a fresh copy,
     // make sure to observe it.
     const prevShouldObserve = shouldObserve
+    // 默认值返回是对象，这里还是需要递归去做 observe 的，与 initProps 不一样
     toggleObserving(true)
     observe(value)
     toggleObserving(prevShouldObserve)
