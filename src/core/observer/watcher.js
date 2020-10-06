@@ -202,7 +202,7 @@ export default class Watcher {
         // set new value
         const oldValue = this.value
         this.value = value
-        // 业务 watcher，get 就是求值，逻辑在 callback
+        // user watcher，get 就是求值，逻辑在 callback
         if (this.user) {
           try {
             this.cb.call(this.vm, value, oldValue)

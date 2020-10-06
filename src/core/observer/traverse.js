@@ -7,9 +7,7 @@ import VNode from '../vdom/vnode'
 const seenObjects = new Set()
 
 /**
- * Recursively traverse an object to evoke all converted
- * getters, so that every nested property inside the object
- * is collected as a "deep" dependency.
+ * 处理 $watch 时候深度依赖收级，让 this.data 和 this.data.data 都可以触发 user watcher
  */
 export function traverse (val: any) {
   _traverse(val, seenObjects)

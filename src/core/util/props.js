@@ -18,6 +18,7 @@ type PropOptions = {
   validator: ?Function
 };
 
+// 验证 props
 export function validateProp (
   key: string,
   propOptions: Object,
@@ -27,7 +28,7 @@ export function validateProp (
   const prop = propOptions[key]
   const absent = !hasOwn(propsData, key)
   let value = propsData[key]
-  // boolean casting
+  // boolean casting 处理 [Boolean, String] 这样的类型
   const booleanIndex = getTypeIndex(Boolean, prop.type)
   if (booleanIndex > -1) {
     if (absent && !hasOwn(prop, 'default')) {
@@ -41,7 +42,7 @@ export function validateProp (
       }
     }
   }
-  // check default value
+  // 获取默认值
   if (value === undefined) {
     value = getPropDefaultValue(vm, prop, key)
     // since the default value is a fresh copy,
@@ -51,6 +52,7 @@ export function validateProp (
     observe(value)
     toggleObserving(prevShouldObserve)
   }
+
   if (
     process.env.NODE_ENV !== 'production' &&
     // skip validation for weex recycle-list child component props
@@ -62,7 +64,7 @@ export function validateProp (
 }
 
 /**
- * Get the default value of a prop.
+ * 获取 props 默认值，在 initProps 和 lifecycle/updateChildComponent 都会用到
  */
 function getPropDefaultValue (vm: ?Component, prop: PropOptions, key: string): any {
   // no default, return undefined
@@ -79,8 +81,8 @@ function getPropDefaultValue (vm: ?Component, prop: PropOptions, key: string): a
       vm
     )
   }
-  // the raw prop value was also undefined from previous render,
-  // return previous default value to avoid unnecessary watcher trigger
+  // 这块是给 lifecycle/updateChildComponent 用的，如果父组件没有传值并且不是 undefined，就返回旧值
+  // 这样设置 this._props 时就不会触发 watcher notify
   if (vm && vm.$options.propsData &&
     vm.$options.propsData[key] === undefined &&
     vm._props[key] !== undefined

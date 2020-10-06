@@ -553,7 +553,7 @@ export function createPatchFunction (backend) {
 
     let i
     const data = vnode.data
-    // 执行 prepatch 钩子
+    // 执行 prepatch 钩子，给子组件更新 props
     if (isDef(data) && isDef(i = data.hook) && isDef(i = i.prepatch)) {
       i(oldVnode, vnode)
     }

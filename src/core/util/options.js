@@ -398,6 +398,7 @@ export function mergeOptions (
     child = child.options
   }
 
+  // 规范化属性格式
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)
@@ -435,9 +436,8 @@ export function mergeOptions (
 }
 
 /**
- * Resolve an asset.
- * This function is used because child instances need access
- * to assets defined in its ancestor chain.
+ * Resolve an asset. because child instances need access to assets defined in its ancestor chain.
+ * 获取资产 resolveAsset(this.$options, 'components', tag)，获取 Component Ctor
  */
 export function resolveAsset (
   options: Object,

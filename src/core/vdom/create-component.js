@@ -59,7 +59,9 @@ const componentVNodeHooks = {
    * patch - patchVnode
    */
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
+    // 组件 vnode 才有这个属性
     const options = vnode.componentOptions
+    // 复用组件 instance
     const child = vnode.componentInstance = oldVnode.componentInstance
     updateChildComponent(
       child,
@@ -106,6 +108,9 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
+/**
+ * 创建组件占位 vnode，只用于 render function 内部
+ */
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -163,7 +168,7 @@ export function createComponent (
     transformModel(Ctor.options, data)
   }
 
-  // extract props
+  // extract props，render function 里传入的 props
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
   // functional component

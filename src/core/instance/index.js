@@ -6,7 +6,6 @@ import { lifecycleMixin } from './lifecycle'
 import { warn } from '../util/index'
 
 /**
- * 
  * 一切都从 new Vue() 开始
  */
 function Vue (options) {
@@ -18,7 +17,7 @@ function Vue (options) {
   this._init(options)
 }
 
-// 往 Vue 原型上挂载方法，文件拆分，每一个文件负责一项大的功能方向
+// 往 Vue 原型上挂载方法，文件拆分，每一个文件负责一个大的功能方向
 initMixin(Vue)
 stateMixin(Vue)
 eventsMixin(Vue)

@@ -21,7 +21,8 @@ export function initExtend (Vue: GlobalAPI) {
     const Super = this
     const SuperId = Super.cid
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
-    // 在组件对象上保存组件类，避免统一类的组件多次创建 Sub
+    // 在组件注册的描述对象上保存组件类，避免统一类的组件多次创建 Sub
+    // 因为 resolveAsset 获取到的都是 options.components 里的原对象，所以可以这样缓存
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
     }
@@ -38,6 +39,7 @@ export function initExtend (Vue: GlobalAPI) {
     Sub.prototype = Object.create(Super.prototype)
     Sub.prototype.constructor = Sub
     Sub.cid = cid++
+    // 把合并后的 options 挂载到 Sub 上，当 Sub 实例化时，在 _init 的 initInternalComponent 使用
     Sub.options = mergeOptions(
       Super.options,
       extendOptions

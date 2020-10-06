@@ -77,14 +77,11 @@ function flushSchedulerQueue () {
   // This ensures that:
   // 1. Components are updated from parent to child. (because parent is always
   //    created before the child)
-  // 2. A component's user watchers are run before its render watcher (because
-  //    user watchers are created before the render watcher)
-  // 3. If a component is destroyed during a parent component's watcher run,
-  //    its watchers can be skipped.
+  // 2. user watcher 比 render watcher 先执行，因为它在 init 里面先创建，并且可能触发新的变更
+  // 3. 如果已经被父组件销毁了，就跳过这个 watcher
   queue.sort((a, b) => a.id - b.id)
 
-  // do not cache length because more watchers might be pushed
-  // as we run existing watchers
+  // 这个队列可能会在执行时发生变化，所以不能 cache queue.length
   for (index = 0; index < queue.length; index++) {
     watcher = queue[index]
     if (watcher.before) {
@@ -94,7 +91,7 @@ function flushSchedulerQueue () {
     has[id] = null
     // 触发更新
     watcher.run()
-    // in dev build, check and stop circular updates.
+    // 如果 run 的时候又触发了 update，果是循环依赖的话，has[id] 就会被 queueWatcher 重新赋值，并且 == 原 id
     if (process.env.NODE_ENV !== 'production' && has[id] != null) {
       circular[id] = (circular[id] || 0) + 1
       if (circular[id] > MAX_UPDATE_COUNT) {
@@ -130,6 +127,9 @@ function flushSchedulerQueue () {
   }
 }
 
+/**
+ * 执行组件的 updated，很明显是倒序执行，所以先触发子组件的 updated
+ */
 function callUpdatedHooks (queue) {
   let i = queue.length
   while (i--) {

@@ -45,17 +45,18 @@ export function initGlobalAPI (Vue: GlobalAPI) {
     defineReactive
   }
 
+  // this.$set 设置响应式对象的新属性
   Vue.set = set
   Vue.delete = del
   Vue.nextTick = nextTick
 
-  // 2.6 explicit observable API
+  // 主动订阅一个对象
   Vue.observable = <T>(obj: T): T => {
     observe(obj)
     return obj
   }
 
-  // 创建空对象
+  // 内部所有实例的 $options 都会 merge Vue.options
   Vue.options = Object.create(null)
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)

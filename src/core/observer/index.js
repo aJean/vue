@@ -102,11 +102,10 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
 }
 
 /**
- * Attempt to create an observer instance for a value,
- * returns the new observer if successfully observed,
- * or the existing observer if the value already has one.
+ * 创建一个响应式的对象，不会对同一 value 对象做多次处理！
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
+  // value 不是对象或者是一个 vnode，那肯定不做处理噻
   if (!isObject(value) || value instanceof VNode) {
     return
   }
@@ -150,6 +149,7 @@ export function defineReactive (
   // cater for pre-defined getter/setters，默认就是直接取 obj 上的 key 值
   const getter = property && property.get
   const setter = property && property.set
+  // 没传 value 从 data 上获取
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
@@ -163,8 +163,8 @@ export function defineReactive (
       const value = getter ? getter.call(obj) : val
       if (Dep.target) {
         dep.depend()
+        // 收集对象级别的依赖，为了 vm.$set 专门做的 hack
         if (childOb) {
-          // 注意这里是用 ob.dep 去收集的，而不是属性的 dep，但是 render watcher 都是一样的
           childOb.dep.depend()
           if (Array.isArray(value)) {
             dependArray(value)
@@ -175,7 +175,8 @@ export function defineReactive (
     },
     set: function reactiveSetter (newVal) {
       const value = getter ? getter.call(obj) : val
-      /* eslint-disable no-self-compare */
+      // 这里比较重要，如果 value 一样，就不去执行 notify 了，可以避免很多不必要的 update
+      // 同时也引入了一些优化方式，比如 props 的 getPropDefaultValue
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }
@@ -205,27 +206,27 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
-    warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`)
+    warn(`Cannot set reactive property on undefined, null, or primitive value: ${target}`)
   }
 
-  // splice 已经被 hook 了，所以这里就可以触发变化
+  // 数组的新增，splice 已经被 hook 了，所以这里就可以触发变化
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.length = Math.max(target.length, key)
     target.splice(key, 1, val)
     return val
   }
+
+  // 如果已经存在的属性，那么直接赋值就好，因为已经 observe 过了
   if (key in target && !(key in Object.prototype)) {
     target[key] = val
     return val
   }
   const ob = (target: any).__ob__
   if (target._isVue || (ob && ob.vmCount)) {
-    process.env.NODE_ENV !== 'production' && warn(
-      'Avoid adding reactive properties to a Vue instance or its root $data ' +
-      'at runtime - declare it upfront in the data option.'
-    )
     return val
   }
+
+  // 没有 __.ob__ 表示不是一个有效的 observer，那就自生自灭去吧
   if (!ob) {
     target[key] = val
     return val
@@ -245,27 +246,30 @@ export function del (target: Array<any> | Object, key: any) {
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
-    warn(`Cannot delete reactive property on undefined, null, or primitive value: ${(target: any)}`)
+    warn(`Cannot delete reactive property on undefined, null, or primitive value: ${target}`)
   }
+
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.splice(key, 1)
     return
   }
+
   const ob = (target: any).__ob__
+
   if (target._isVue || (ob && ob.vmCount)) {
-    process.env.NODE_ENV !== 'production' && warn(
-      'Avoid deleting properties on a Vue instance or its root $data ' +
-      '- just set it to null.'
-    )
     return
   }
+
   if (!hasOwn(target, key)) {
     return
   }
+
   delete target[key]
+
   if (!ob) {
     return
   }
+
   ob.dep.notify()
 }
 
