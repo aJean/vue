@@ -32,7 +32,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
 
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production') {
-      // detect possible CSP restriction
+      // 判断 csp 是不是运行执行 new Function 或 eval
       try {
         new Function('return 1')
       } catch (e) {
@@ -48,7 +48,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
       }
     }
 
-    // check cache
+    // 缓存避免同一个模板重复编译
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
@@ -56,7 +56,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
       return cache[key]
     }
 
-    // compile
+    // 关键编译
     const compiled = compile(template, options)
 
     // check compilation errors/tips
@@ -90,6 +90,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     // turn code into functions
     const res = {}
     const fnGenErrors = []
+    // string 2 function
     res.render = createFunction(compiled.render, fnGenErrors)
     res.staticRenderFns = compiled.staticRenderFns.map(code => {
       return createFunction(code, fnGenErrors)

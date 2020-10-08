@@ -119,6 +119,7 @@ export function _createElement (
         undefined, undefined, context
       )
     }
+  // tag 可以直接传组件的 Ctor
   } else {
     // direct component options / constructor
     vnode = createComponent(tag, data, context, children)

@@ -124,7 +124,9 @@ export function renderMixin (Vue: Class<Component>) {
       }
       vnode = createEmptyVNode()
     }
-    // 将占位 vnode 组件 vnode，可以在 this._vnode.parent 里查看
+
+    // 把占位 vnode 设置给组件 vnode，可以在 this._vnode.parent 里查看
+    // 这个 parent 会一直向上，直到一个非组件的 vnode
     vnode.parent = _parentVnode
     return vnode
   }

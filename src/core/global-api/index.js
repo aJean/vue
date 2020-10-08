@@ -23,7 +23,7 @@ import {
  */
 
 export function initGlobalAPI (Vue: GlobalAPI) {
-  // config
+  // 不要直接设置 Vue.config，可以设置 config 的属性
   const configDef = {}
   configDef.get = () => config
   if (process.env.NODE_ENV !== 'production') {

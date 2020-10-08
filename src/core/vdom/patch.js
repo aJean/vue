@@ -28,6 +28,10 @@ import {
   isPrimitive
 } from '../util/index'
 
+/**
+ * @file 通用 patch 计算，不同平台通过 createPatchFunction，传入宿主 backend，生成自己的 patch 方法
+ */
+
 export const emptyNode = new VNode('', {}, [])
 
 const hooks = ['create', 'activate', 'update', 'remove', 'destroy']
@@ -181,7 +185,6 @@ export function createPatchFunction (backend) {
           }
           insert(parentElm, vnode.elm, refElm)
         }
-        // 创建子节点的 element，也会遇到 component 继续递归，这时候再次执行 createElm 传入的 parentElm 就是 vnode.elm
         createChildren(vnode, children, insertedVnodeQueue)
         if (appendAsTree) {
           if (isDef(data)) {
@@ -190,10 +193,13 @@ export function createPatchFunction (backend) {
           insert(parentElm, vnode.elm, refElm)
         }
       } else {
+        // 创建子节点的 element，也会遇到 component 继续递归
         createChildren(vnode, children, insertedVnodeQueue)
         if (isDef(data)) {
           invokeCreateHooks(vnode, insertedVnodeQueue)
         }
+        // 能走到这的一定是 dom vnode，如果父级也是 dom vnode，那么这里就有 parentElm
+        // 如果父级是 component，那么 patch 就结束了，流程回到 createComponent 里面
         insert(parentElm, vnode.elm, refElm)
       }
 
@@ -215,12 +221,10 @@ export function createPatchFunction (backend) {
     if (isDef(i)) {
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
       if (isDef(i = i.hook) && isDef(i = i.init)) {
+        // 占位 vnode，执行 init hook 进行 component 实例化
         i(vnode, false /* hydrating */)
       }
-      // after calling the init hook, if the vnode is a child component
-      // it should've created a child instance and mounted it. the child
-      // component also has set the placeholder vnode's elm.
-      // in that case we can just return the element and be done.
+      // 如果 vnode 是 dom，那肯定没有 init hook 也不会添加 componentInstance，返回 createElm 执行 tag 创建
       if (isDef(vnode.componentInstance)) {
         // 设置 vnode.elm，这个 vnode 是占位节点，这也是个递归的过程，拿到最下面节点的 el，一直返回到最上层的组件
         initComponent(vnode, insertedVnodeQueue)
@@ -241,6 +245,7 @@ export function createPatchFunction (backend) {
       vnode.data.pendingInsert = null
     }
     // 这时候子组件已经完成了 patch，所以 vm.$el 上就是子组件的 dom
+    // 这个 vnode 是占位的 vnode，componentInstance 是子组件的实例
     vnode.elm = vnode.componentInstance.$el
     if (isPatchable(vnode)) {
       invokeCreateHooks(vnode, insertedVnodeQueue)
@@ -777,7 +782,7 @@ export function createPatchFunction (backend) {
           nodeOps.nextSibling(oldElm)
         )
 
-        // update parent placeholder node element, recursively
+        // 只有创建 root 或 update diff 的时候会走到这里，并且 root.parent 是 undefined
         // 更新占位 vnode，因为之前保存的 elm 是旧 vnode 的 elm
         // 最下层创建的 dom elm，一直设置到顶层的嵌套组件，然后那个组件是在 createComponent 里面挂载
         if (isDef(vnode.parent)) {

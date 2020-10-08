@@ -63,6 +63,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     const vm: Component = this
     const prevEl = vm.$el
     const prevVnode = vm._vnode
+    // 设置 activeInstance = this
     const restoreActiveInstance = setActiveInstance(vm)
     // 保存这一次生成的 vnode，因为 update 都是通过 instace 执行的，所以需要保存在 instance 上
     vm._vnode = vnode

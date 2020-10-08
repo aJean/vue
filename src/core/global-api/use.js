@@ -2,6 +2,9 @@
 
 import { toArray } from '../util/index'
 
+/**
+ * 插件扩展，比如 vue-router
+ */
 export function initUse (Vue: GlobalAPI) {
   Vue.use = function (plugin: Function | Object) {
     const installedPlugins = (this._installedPlugins || (this._installedPlugins = []))
