@@ -610,11 +610,17 @@ export function createPatchFunction (backend) {
   // deep updates (#7063).
   const isRenderedModule = makeMap('attrs,class,staticClass,staticStyle,key')
 
-  // Note: this is a browser-only function so we can assume elms are DOM nodes.
+  /**
+   * ssr 注入
+   * 首先这个方法不会触发 root elm 的创建和挂载
+   * 遇到组件就执行初始化，收集依赖，同时会创建组件的 elm
+   * 遇到 dom 就比较产物是否一致，例如 innerHtml str 是否相同
+   */
   function hydrate (elm, vnode, insertedVnodeQueue, inVPre) {
     let i
     const { tag, data, children } = vnode
     inVPre = inVPre || (data && data.pre)
+    // 直接使用页面的结构
     vnode.elm = elm
 
     if (isTrue(vnode.isComment) && isDef(vnode.asyncFactory)) {
@@ -631,6 +637,7 @@ export function createPatchFunction (backend) {
       if (isDef(i = data.hook) && isDef(i = i.init)) i(vnode, true /* hydrating */)
       if (isDef(i = vnode.componentInstance)) {
         // child component. it should have hydrated its own tree.
+        // 组件这里就可以 return 了，因为 init hook 时候会递归 mount
         initComponent(vnode, insertedVnodeQueue)
         return true
       }
@@ -642,7 +649,9 @@ export function createPatchFunction (backend) {
           createChildren(vnode, children, insertedVnodeQueue)
         } else {
           // v-html and domProps: innerHTML
+          // 主要是比较 render function 提供的 domProps 和真实 dom 是否一致
           if (isDef(i = data) && isDef(i = i.domProps) && isDef(i = i.innerHTML)) {
+            // 比较 dom string 是否一致
             if (i !== elm.innerHTML) {
               /* istanbul ignore if */
               if (process.env.NODE_ENV !== 'production' &&
@@ -657,7 +666,7 @@ export function createPatchFunction (backend) {
               return false
             }
           } else {
-            // iterate and compare children lists
+            // 如果是通过 children 的方式，那就递归再去比较，与递归 createElm 一样，一定会有个结果 true 或 false
             let childrenMatch = true
             let childNode = elm.firstChild
             for (let i = 0; i < children.length; i++) {
@@ -748,7 +757,7 @@ export function createPatchFunction (backend) {
             hydrating = true
           }
           if (isTrue(hydrating)) {
-            // 进行 ssr hydrate
+            // 进行 ssr hydrate 成功，就不需要下面创建 dom 的过程了
             if (hydrate(oldVnode, vnode, insertedVnodeQueue)) {
               invokeInsertHook(vnode, insertedVnodeQueue, true)
               return oldVnode

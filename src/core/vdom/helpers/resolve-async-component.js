@@ -49,6 +49,7 @@ export function resolveAsyncComponent (
   }
 
   // 加载成功后会把 exports 赋给 factory.resolved
+  // Ctor async function 不会变
   if (isDef(factory.resolved)) {
     return factory.resolved
   }

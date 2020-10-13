@@ -209,8 +209,7 @@ export function mountComponent (
   }, true /* isRenderWatcher */)
   hydrating = false
 
-  // manually mounted instance, call mounted on self
-  // mounted is called for render-created child components in its inserted hook
+  // 主实例在这里执行，内部组件的 mounted 都是在 insert hook 里触发的
   if (vm.$vnode == null) {
     vm._isMounted = true
     callHook(vm, 'mounted')
