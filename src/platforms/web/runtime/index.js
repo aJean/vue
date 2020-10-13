@@ -1,4 +1,6 @@
-/* @flow */
+/**
+ * @file 运行时，会接入不同平台的 runtime patch 和 $mount
+ */
 
 import Vue from 'core/index'
 import config from 'core/config'

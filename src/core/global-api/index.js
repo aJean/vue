@@ -51,7 +51,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   Vue.nextTick = nextTick
 
   // 主动订阅一个对象
-  Vue.observable = <T>(obj: T): T => {
+  Vue.observable = (obj) => {
     observe(obj)
     return obj
   }
