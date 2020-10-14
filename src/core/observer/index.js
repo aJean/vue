@@ -164,6 +164,7 @@ export function defineReactive (
       if (Dep.target) {
         dep.depend()
         // 收集对象级别的依赖，为了 vm.$set 专门做的 hack
+        // 这个处理只针对子属性的 value
         if (childOb) {
           childOb.dep.depend()
           if (Array.isArray(value)) {

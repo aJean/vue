@@ -217,6 +217,7 @@ export function mountComponent (
   return vm
 }
 
+// 更新子组件
 export function updateChildComponent (
   vm: Component,
   propsData: ?Object,
@@ -266,6 +267,10 @@ export function updateChildComponent (
   vm.$listeners = listeners || emptyObject
 
   // update props，把父组件变化的 props 赋值给子组件，根据响应式，这个会触发 setter，同时执行子组件 render watcher 的 update
+  // 这里是比 react 优化的地方，那优化点在哪呢？
+  // 首先会判断组件的 props 定义，就是这个组件有没有使用 props
+  // 然后它只取 _propKeys 也就是 initProps 拿到的定义过的 key，你随便传 props vue 是不理会的
+  // 最后就是 defineProperty 时 setter 会判断值，变化了才触发 dep
   if (propsData && vm.$options.props) {
     toggleObserving(false)
     const props = vm._props

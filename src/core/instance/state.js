@@ -45,6 +45,9 @@ export function proxy(target: Object, sourceKey: string, key: string) {
   Object.defineProperty(target, key, sharedPropertyDefinition);
 }
 
+/**
+ * 初始化数据
+ */
 export function initState(vm: Component) {
   vm._watchers = [];
   const opts = vm.$options;
@@ -53,6 +56,7 @@ export function initState(vm: Component) {
   if (opts.data) {
     initData(vm);
   } else {
+    // asRootData 的 对象上会有 vmCount 统计
     observe((vm._data = {}), true /* asRootData */);
   }
   // cpmputed watcher
