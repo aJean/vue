@@ -666,7 +666,7 @@ export function createPatchFunction (backend) {
               return false
             }
           } else {
-            // 如果是通过 children 的方式，那就递归再去比较，与递归 createElm 一样，一定会有个结果 true 或 false
+            // 如果 dom vnode 并且有 children，那就递归再去比较，与递归 createElm 一样，一定会有个结果 true 或 false
             let childrenMatch = true
             let childNode = elm.firstChild
             for (let i = 0; i < children.length; i++) {
