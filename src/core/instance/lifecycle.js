@@ -144,6 +144,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
+// 在 platform/web/runtime 时挂载到 Vue.prototype
 export function mountComponent (
   vm: Component,
   el: ?Element,
