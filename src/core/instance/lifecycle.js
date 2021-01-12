@@ -13,14 +13,15 @@ import {
   warn,
   noop,
   remove,
-  handleError,
   emptyObject,
-  validateProp
+  validateProp,
+  invokeWithErrorHandling
 } from '../util/index'
 
 export let activeInstance: any = null
 export let isUpdatingChildComponent: boolean = false
 
+// 设置当前激活的 vm 对象
 export function setActiveInstance(vm: Component) {
   const prevActiveInstance = activeInstance
   activeInstance = vm
@@ -29,6 +30,7 @@ export function setActiveInstance(vm: Component) {
   }
 }
 
+// 保存 $children 和 $parent
 export function initLifecycle (vm: Component) {
   const options = vm.$options
 
@@ -56,21 +58,25 @@ export function initLifecycle (vm: Component) {
 }
 
 export function lifecycleMixin (Vue: Class<Component>) {
+  // 渲染 watcher 更新界面
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
     const prevVnode = vm._vnode
+    // 设置 activeInstance = this
     const restoreActiveInstance = setActiveInstance(vm)
+    // 保存这一次生成的 vnode，因为 update 都是通过 instace 执行的，所以需要保存在 instance 上
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
     if (!prevVnode) {
-      // initial render
+      // 没有 prevNode 说明是初始化
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
-      // updates
+      // 这里就是 diff 更新
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
+    // 恢复 activeInstance
     restoreActiveInstance()
     // update __vue__ reference
     if (prevEl) {
@@ -123,7 +129,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     vm._isDestroyed = true
     // invoke destroy hooks on current rendered tree
     vm.__patch__(vm._vnode, null)
-    // fire destroyed hook
+    // 可以看到 destroyed 事件要在 child instance 卸载后才触发
     callHook(vm, 'destroyed')
     // turn off all instance listeners.
     vm.$off()
@@ -138,6 +144,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
+// 这个就是 $mount 方法，会在 paltform/runtime 中挂载到 Vue.prototype 上
 export function mountComponent (
   vm: Component,
   el: ?Element,
@@ -168,6 +175,7 @@ export function mountComponent (
 
   let updateComponent
   /* istanbul ignore if */
+  // 性能检测模式
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
     updateComponent = () => {
       const name = vm._name
@@ -186,14 +194,13 @@ export function mountComponent (
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
+    // 关键渲染挂载
     updateComponent = () => {
       vm._update(vm._render(), hydrating)
     }
   }
 
-  // we set this to vm._watcher inside the watcher's constructor
-  // since the watcher's initial patch may call $forceUpdate (e.g. inside child
-  // component's mounted hook), which relies on vm._watcher being already defined
+  // 设置 vm._watcher = 渲染 watcher，这里创建就会执行 get 也就是 updateComponent，触发渲染
   new Watcher(vm, updateComponent, noop, {
     before () {
       if (vm._isMounted && !vm._isDestroyed) {
@@ -203,8 +210,7 @@ export function mountComponent (
   }, true /* isRenderWatcher */)
   hydrating = false
 
-  // manually mounted instance, call mounted on self
-  // mounted is called for render-created child components in its inserted hook
+  // 主实例在这里执行，内部组件的 mounted 都是在 insert hook 里触发的
   if (vm.$vnode == null) {
     vm._isMounted = true
     callHook(vm, 'mounted')
@@ -212,6 +218,7 @@ export function mountComponent (
   return vm
 }
 
+// 更新子组件
 export function updateChildComponent (
   vm: Component,
   propsData: ?Object,
@@ -224,12 +231,26 @@ export function updateChildComponent (
   }
 
   // determine whether component has slot children
-  // we need to do this before overwriting $options._renderChildren
-  const hasChildren = !!(
+  // we need to do this before overwriting $options._renderChildren.
+
+  // check if there are dynamic scopedSlots (hand-written or compiled but with
+  // dynamic slot names). Static scoped slots compiled from template has the
+  // "$stable" marker.
+  const newScopedSlots = parentVnode.data.scopedSlots
+  const oldScopedSlots = vm.$scopedSlots
+  const hasDynamicScopedSlot = !!(
+    (newScopedSlots && !newScopedSlots.$stable) ||
+    (oldScopedSlots !== emptyObject && !oldScopedSlots.$stable) ||
+    (newScopedSlots && vm.$scopedSlots.$key !== newScopedSlots.$key)
+  )
+
+  // Any static slot children from the parent may have changed during parent's
+  // update. Dynamic scoped slots may also have changed. In such cases, a forced
+  // update is necessary to ensure correctness.
+  const needsForceUpdate = !!(
     renderChildren ||               // has new static slots
     vm.$options._renderChildren ||  // has old static slots
-    parentVnode.data.scopedSlots || // has new scoped slots
-    vm.$scopedSlots !== emptyObject // has old scoped slots
+    hasDynamicScopedSlot
   )
 
   vm.$options._parentVnode = parentVnode
@@ -246,14 +267,20 @@ export function updateChildComponent (
   vm.$attrs = parentVnode.data.attrs || emptyObject
   vm.$listeners = listeners || emptyObject
 
-  // update props
+  // update props，把父组件变化的 props 赋值给子组件，根据响应式，这个会触发 setter，同时执行子组件 render watcher 的 update
+  // 这里是比 react 优化的地方，那优化点在哪呢？
+  // 首先会判断组件的 props 定义，就是这个组件有没有使用 props
+  // 然后它只取 _propKeys 也就是 initProps 拿到的定义过的 key，你随便传 props vue 是不理会的
+  // 最后就是 defineProperty 时 setter 会判断值，变化了才触发 dep
   if (propsData && vm.$options.props) {
     toggleObserving(false)
     const props = vm._props
     const propKeys = vm.$options._propKeys || []
+    // initProps 时候做的 key 缓存，只会处理定义过的 props！！
     for (let i = 0; i < propKeys.length; i++) {
       const key = propKeys[i]
       const propOptions: any = vm.$options.props // wtf flow?
+      // 支持缓存
       props[key] = validateProp(key, propOptions, propsData, vm)
     }
     toggleObserving(true)
@@ -268,7 +295,7 @@ export function updateChildComponent (
   updateComponentListeners(vm, listeners, oldListeners)
 
   // resolve slots + force update if has children
-  if (hasChildren) {
+  if (needsForceUpdate) {
     vm.$slots = resolveSlots(renderChildren, parentVnode.context)
     vm.$forceUpdate()
   }
@@ -323,13 +350,10 @@ export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
   const handlers = vm.$options[hook]
+  const info = `${hook} hook`
   if (handlers) {
     for (let i = 0, j = handlers.length; i < j; i++) {
-      try {
-        handlers[i].call(vm)
-      } catch (e) {
-        handleError(e, vm, `${hook} hook`)
-      }
+      invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }
   }
   if (vm._hasHookEvent) {
