@@ -144,6 +144,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
+// Vue.prototype.$mount
 export function mountComponent (
   vm: Component,
   el: ?Element,
