@@ -85,6 +85,7 @@ function initProps(vm: Component, propsOptions: Object) {
   if (!isRoot) {
     toggleObserving(false);
   }
+  // 只会处理组件声明的 props
   for (const key in propsOptions) {
     keys.push(key);
     const value = validateProp(key, propsOptions, propsData, vm);
@@ -141,7 +142,7 @@ function initData(vm: Component) {
   const props = vm.$options.props;
   const methods = vm.$options.methods;
   let i = keys.length;
-  // methods、props、data 里面的 key 不能冲突，因为都会挂载到 vm._data 上
+  // methods、props、data 里面的 key 不能冲突，因为都会通过代理挂载到 vm 上
   while (i--) {
     const key = keys[i];
     if (process.env.NODE_ENV !== "production") {
@@ -255,7 +256,7 @@ export function defineComputed(
   Object.defineProperty(target, key, sharedPropertyDefinition);
 }
 
-// 读取 computed 属性时候执行
+// 体现 watcher.lazy 的地方，读取 computed 属性时候再执行
 function createComputedGetter(key) {
   return function computedGetter() {
     const watcher = this._computedWatchers && this._computedWatchers[key];
