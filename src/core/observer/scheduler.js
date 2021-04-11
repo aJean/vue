@@ -91,7 +91,7 @@ function flushSchedulerQueue () {
     has[id] = null
     // 触发更新
     watcher.run()
-    // 如果 run 的时候又触发了 update，果是循环依赖的话，has[id] 就会被 queueWatcher 重新赋值，并且 == 原 id
+    // 如果 run 的时候又触发了 update，如果是循环依赖的话，has[id] 就会被 queueWatcher 重新赋值，并且 == 原 id
     if (process.env.NODE_ENV !== 'production' && has[id] != null) {
       circular[id] = (circular[id] || 0) + 1
       if (circular[id] > MAX_UPDATE_COUNT) {

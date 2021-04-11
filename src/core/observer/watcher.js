@@ -50,6 +50,7 @@ export default class Watcher {
     isRenderWatcher?: boolean
   ) {
     this.vm = vm
+    // _forceUpdate
     if (isRenderWatcher) {
       vm._watcher = this
     }
@@ -101,13 +102,14 @@ export default class Watcher {
    * Evaluate the getter, and re-collect dependencies.
    */
   get () {
-    pushTarget(this) // Dep.target = this
+    // Dep.target = this
+    pushTarget(this)
     let value
     const vm = this.vm
     try {
       // 这里会触发对应属性的 get，把 wather 添加到属性的 dep.subs 中
       // 对于 render watcher 执行的就是 updateComponent 它本身没有依赖，但是更新的过程中会执行 _render，就会读取模板属性
-      // 所以 render watcher 会被添加到每一个 defineReactive 过的属性里
+      // 这时候 Dep.target === render watcher, 所以 render watcher 会被添加到每一个 defineReactive 过的属性里
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
