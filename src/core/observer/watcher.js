@@ -232,7 +232,6 @@ export default class Watcher {
   }
 
   /**
-   * Depend on all deps collected by this watcher.
    * computed watcher 掉用，把当前所属的渲染 watcher 放到所有 dep 中，建立网状依赖
    */
   depend () {

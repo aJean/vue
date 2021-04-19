@@ -59,7 +59,7 @@ export function initState(vm: Component) {
     // asRootData 的 对象上会有 vmCount 统计
     observe((vm._data = {}), true /* asRootData */);
   }
-  // cpmputed watcher
+  // computed watcher，虽然先执行，但创建 computed watcher 不会立即触发 get，所以执行顺序是 user watcher - computed watcher - render watcher
   if (opts.computed) initComputed(vm, opts.computed);
   // user watcher
   if (opts.watch && opts.watch !== nativeWatch) {
@@ -192,6 +192,7 @@ function initComputed(vm: Component, computed: Object) {
 
   for (const key in computed) {
     const userDef = computed[key];
+    // 依赖属性表达式，比如 vm.name + vm.city
     const getter = typeof userDef === "function" ? userDef : userDef.get;
     if (process.env.NODE_ENV !== "production" && getter == null) {
       warn(`Getter is missing for computed property "${key}".`, vm);
@@ -262,11 +263,12 @@ function createComputedGetter(key) {
     const watcher = this._computedWatchers && this._computedWatchers[key];
     if (watcher) {
       // 缓存计算结果，因为这里会执行依赖属性的 get，影响比较大
+      // 执行完 computed wathcer 就会被添加到依赖属性的 dep 中，同时又把依赖属性的 dep 添加到 computed wathcer 的 deps 里面，同时 popTarget 恢复到渲染 watcher
       if (watcher.dirty) {
         watcher.evaluate();
       }
       // 触发依赖收集，这个时候 Dep.target 应该是一个渲染 watcher
-      // 并且在执行 evaluate - getter 后，也收集了一批 deps
+      // 执行的结果就是直接把渲染 watcher 放到里依赖属性的 dep 中
       if (Dep.target) {
         watcher.depend();
       }
@@ -387,6 +389,7 @@ export function stateMixin(Vue: Class<Component>) {
     }
     options = options || {};
     options.user = true;
+    // 这时已经把 user watcher 添加到 dep 中了，但是还没有添加 render watcher
     const watcher = new Watcher(vm, expOrFn, cb, options);
     // 立即执行一次回调
     if (options.immediate) {
