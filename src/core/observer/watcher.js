@@ -188,8 +188,7 @@ export default class Watcher {
   }
 
   /**
-   * Scheduler job interface.
-   * Will be called by the scheduler.
+   * Will be called by the scheduler - flushSchedulerQueue
    */
   run () {
     if (this.active) {
@@ -232,7 +231,7 @@ export default class Watcher {
   }
 
   /**
-   * computed watcher 掉用，把当前所属的渲染 watcher 放到所有 dep 中，建立网状依赖
+   * computed watcher 调用，把当前所属的渲染 watcher 放到所有 dep 中，建立网状依赖
    */
   depend () {
     let i = this.deps.length

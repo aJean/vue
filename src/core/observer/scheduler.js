@@ -75,8 +75,7 @@ function flushSchedulerQueue () {
 
   // Sort queue before flush.
   // This ensures that:
-  // 1. Components are updated from parent to child. (because parent is always
-  //    created before the child)
+  // 1. Components are updated from parent to child. (because parent is always created before the child)
   // 2. user watcher 比 render watcher 先执行，因为它在 init 里面先创建，并且可能触发新的变更
   // 3. 如果已经被父组件销毁了，就跳过这个 watcher
   queue.sort((a, b) => a.id - b.id)

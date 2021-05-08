@@ -257,7 +257,10 @@ export function defineComputed(
   Object.defineProperty(target, key, sharedPropertyDefinition);
 }
 
-// 体现 watcher.lazy 的地方，读取 computed 属性时候再执行
+/**
+ * computed getter 与 defineReactive 不同，不会去收集依赖
+ * 体现 watcher.lazy 的地方，读取 computed 属性时候再执行
+ */ 
 function createComputedGetter(key) {
   return function computedGetter() {
     const watcher = this._computedWatchers && this._computedWatchers[key];
