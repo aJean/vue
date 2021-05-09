@@ -104,7 +104,8 @@ Vue 本身就是一个 function，非常简单，通过不同的 mixins 将功�
 ---
 
 #### 流程
-- 入口是 new vue，先初始化 _init 会执行很多 initXXX，然后执行 $mount 和 _update， 这是一个主线
+- 入口是 new vue，先初始化 _init 会执行很多 initXXX，然后执行 vm.$mount 和 _update， 这是一个主线
+- vm.$mount 在 platform 中定义，内部执行 mountComponent
 - _update 调用 vm._render & opts.render 内部使用 createElement 生成 vnode， 可能是 dom vnode 也可能是 component vnode 
 - vdom/createElement 将创建子组件的 Ctor，并执行 installComponentHooks 安装 componentVNodeHooks
 - patch 期间通过 createElm 将 vnode 转化为 dom element，这里会尝试先执行 patch/createComponent，调用 hooks.init 
