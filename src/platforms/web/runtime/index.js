@@ -17,6 +17,7 @@ import {
   isUnknownElement
 } from 'web/util/index'
 
+// 生成跨平台的 patch
 import { patch } from './patch'
 import platformDirectives from './directives/index'
 import platformComponents from './components/index'

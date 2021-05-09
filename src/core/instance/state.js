@@ -59,9 +59,9 @@ export function initState(vm: Component) {
     // asRootData 的 对象上会有 vmCount 统计
     observe((vm._data = {}), true /* asRootData */);
   }
-  // computed watcher，虽然先执行，但创建 computed watcher 不会立即触发 get，所以执行顺序是 user watcher - computed watcher - render watcher
+  // computed watcher，虽然先执行，但创建不会立即触发 get，lazy 模式
   if (opts.computed) initComputed(vm, opts.computed);
-  // user watcher
+  // user watcher，创建即会触发属性的依赖收集
   if (opts.watch && opts.watch !== nativeWatch) {
     initWatch(vm, opts.watch);
   }

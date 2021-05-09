@@ -194,6 +194,8 @@ export default class Watcher {
     if (this.active) {
       // 对于渲染 watcher 来说，就是执行 updateComponent，进入 patch 流程
       const value = this.get()
+
+      // 止于 user watcher 会走到这里
       if (
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even
