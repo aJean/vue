@@ -141,12 +141,13 @@ export function defineReactive (
 ) {
   const dep = new Dep()
 
+  // 获取当前的属性描述对象
   const property = Object.getOwnPropertyDescriptor(obj, key)
   if (property && property.configurable === false) {
     return
   }
 
-  // cater for pre-defined getter/setters，默认就是直接取 obj 上的 key 值
+  // gater for pre-defined getter/setters，默认就是直接取 obj 上的 key 值
   const getter = property && property.get
   const setter = property && property.set
   // 没传 value 从 data 上获取
