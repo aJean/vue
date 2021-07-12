@@ -108,8 +108,9 @@ export default class Watcher {
     const vm = this.vm
     try {
       // 这里会触发对应属性的 get，执行 dep.depend()，把 wather 添加到属性的 dep.subs 中
-      // 对于 render watcher 执行的就是 updateComponent 它本身没有依赖，但是更新的过程中会执行 _render，就会读取模板属性
+      // 对于 render watcher 执行的就是 updateComponent 它本身没有依赖，但是更新的过程中会执行 _render，当读取模板属性的时候会触发依赖收集
       // 这时候 Dep.target === render watcher, 所以 render watcher 会被添加到每一个 defineReactive 过的属性里
+      // 假如一次过程中少执行了一次属性读取，那么 render watch 就会从这个属性的 deps 中删除，下次改变这个属性就不会触发渲染
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -124,7 +125,7 @@ export default class Watcher {
       }
       // 恢复上一级的 Dep.target，因为 vnode 是个树结构
       popTarget()
-      // 移除一些 dep
+      // 清除 dep
       this.cleanupDeps()
     }
     return value
