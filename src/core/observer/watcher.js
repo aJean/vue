@@ -50,7 +50,7 @@ export default class Watcher {
     isRenderWatcher?: boolean
   ) {
     this.vm = vm
-    // _forceUpdate
+    // 用于触发 _forceUpdate
     if (isRenderWatcher) {
       vm._watcher = this
     }
