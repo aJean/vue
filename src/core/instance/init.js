@@ -73,7 +73,7 @@ export function initMixin(Vue: Class<Component>) {
       measure(`vue ${vm._name} init`, startTag, endTag);
     }
 
-    // 在 platform 中定义不同平台的 $mount 方法
+    // 在 platform 中定义不同平台的 $mount 方法，web 的话就是 lifecycle.js 中的 mountComponent
     if (vm.$options.el) {
       vm.$mount(vm.$options.el);
     }
