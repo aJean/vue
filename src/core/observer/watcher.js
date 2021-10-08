@@ -223,7 +223,6 @@ export default class Watcher {
   }
 
   /**
-   * Evaluate the value of the watcher. This only gets called for lazy watchers.
    * computed watcher 专用
    */
   evaluate () {
@@ -235,6 +234,7 @@ export default class Watcher {
 
   /**
    * computed watcher 调用，把当前所属的渲染 watcher 放到所有 dep 中，建立网状依赖
+   * instance/state.js - createComputedGetter
    */
   depend () {
     let i = this.deps.length

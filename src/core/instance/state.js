@@ -184,6 +184,9 @@ export function getData(data: Function, vm: Component): any {
 
 const computedWatcherOptions = { lazy: true };
 
+/**
+ * 初始化计算属性
+ */
 function initComputed(vm: Component, computed: Object) {
   // $flow-disable-line
   const watchers = (vm._computedWatchers = Object.create(null));
@@ -199,10 +202,10 @@ function initComputed(vm: Component, computed: Object) {
     }
 
     if (!isSSR) {
-      // create internal watcher for the computed property.
+      // 创建渲染 watcher
       watchers[key] = new Watcher(
         vm,
-        getter || noop,
+        getter || noop, // 依赖属性的读取
         noop,
         computedWatcherOptions
       );
@@ -258,7 +261,7 @@ export function defineComputed(
 }
 
 /**
- * computed getter 与 defineReactive 不同，不会去收集依赖
+ * computed getter 与 defineReactive getter 不同，不会去收集依赖 dep.depend
  * 体现 watcher.lazy 的地方，读取 computed 属性时候再执行
  */ 
 function createComputedGetter(key) {
@@ -266,11 +269,12 @@ function createComputedGetter(key) {
     const watcher = this._computedWatchers && this._computedWatchers[key];
     if (watcher) {
       // 缓存计算结果，因为这里会执行依赖属性的 get，影响比较大
-      // 执行完 computed wathcer 就会被添加到依赖属性的 dep 中，同时又把依赖属性的 dep 添加到 computed wathcer 的 deps 里面，同时 popTarget 恢复到渲染 watcher
+      // 触发依赖收集1，执行完 computed wathcer 就会被添加到依赖属性的 dep 中，同时又把依赖属性的 dep 添加到 computed wathcer 的 deps 里面
+      // 同时 popTarget 恢复到渲染 watcher
       if (watcher.dirty) {
         watcher.evaluate();
       }
-      // 触发依赖收集，这个时候 Dep.target 应该是一个渲染 watcher
+      // 触发依赖收集2，这个时候 Dep.target 应该是一个渲染 watcher
       // 执行的结果就是直接把渲染 watcher 放到里依赖属性的 dep 中
       if (Dep.target) {
         watcher.depend();
